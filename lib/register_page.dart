@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'login_page.dart';
-
+import 'auth_service.dart'; // Import AuthService class
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -13,6 +13,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  final AuthService _authService = AuthService(); // Create an instance of AuthService
 
   @override
   Widget build(BuildContext context) {
@@ -108,10 +109,28 @@ class _RegisterPageState extends State<RegisterPage> {
                 SizedBox(height: 30),
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        Fluttertoast.showToast(msg: 'Registration Successful');
-                        // Implement registration logic here
+                        String email = _emailController.text.trim();
+                        String password = _passwordController.text.trim();
+
+                        // Call AuthService to register the user
+                        var user = await _authService.registerUser(email, password);
+
+                        if (user != null) {
+                          // Navigate to LoginPage on successful registration
+                          Fluttertoast.showToast(msg: 'Registration Successful');
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => LoginPage()),
+                          );
+                        } else {
+                          // Show error message on registration failure
+                          Fluttertoast.showToast(
+                            msg: 'Registration Failed. Please try again.',
+                            toastLength: Toast.LENGTH_LONG,
+                          );
+                        }
                       }
                     },
                     child: Text('Register'),
@@ -143,7 +162,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
         ),
-     ),
-);
-}
+      ),
+    );
+  }
 }

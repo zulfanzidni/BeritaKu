@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "637965316799",
+    "project_id": "beritaku-32bd2",
+    "storage_bucket": "beritaku-32bd2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:637965316799:android:a94955b38d4abb49ad4c0a",
+        "android_client_info": {
+          "package_name": "com.beritaku.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFeNpPCFKfvegtzwGGrkHh0fs08CALsIw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

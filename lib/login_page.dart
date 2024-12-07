@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'register_page.dart';
 import 'home_page.dart';
+import 'auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -12,6 +13,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final AuthService _auth = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -86,13 +88,20 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(height: 30),
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        Fluttertoast.showToast(msg: 'Login Successful');
-                        Navigator.pushReplacement(
-                          context, 
-                          MaterialPageRoute(builder: (context) => HomePage()),
-                        );
+                        String email = _emailController.text.trim();
+                        String password = _passwordController.text.trim();
+
+                        var user = await _auth.loginUser(email, password);
+                        
+                        if (user != null) {
+                          Fluttertoast.showToast(msg: 'Login Successful');
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
+                        }
+                        else {
+                          Fluttertoast.showToast(msg: 'Login Failed');
+                        }
                       }
                     },
                     child: Text('Login'),

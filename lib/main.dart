@@ -1,23 +1,31 @@
-import 'package:beritaku/home_page.dart';
 import 'package:flutter/material.dart';
-// import 'package:fluttertoast/fluttertoast.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'login_page.dart';
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-void main() {
+  await Firebase.initializeApp(
+    options: FirebaseOptions(
+      apiKey: "AIzaSyBFeNpPCFKfvegtzwGGrkHh0fs08CALsIw",
+      appId: "1:637965316799:android:a94955b38d4abb49ad4c0a",
+      messagingSenderId: "637965316799",
+      projectId: "beritaku-32bd2",
+      storageBucket: "beritaku-32bd2.appspot.com",
+    ),
+  );
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BeritaKu',
-      theme: ThemeData(primarySwatch: Colors.blue
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: LoginPage(),
     );
   }
