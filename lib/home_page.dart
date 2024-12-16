@@ -1,151 +1,179 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firestore_service.dart'; // Pastikan FirestoreService sudah disiapkan
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final FirestoreService _firestoreService = FirestoreService();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _categoryController = TextEditingController();
+
+  void _addItem() {
+    if (_titleController.text.isNotEmpty && _descriptionController.text.isNotEmpty) {
+      _firestoreService.addItem(
+        _titleController.text,
+        _descriptionController.text,
+        _categoryController.text,
+      );
+      _titleController.clear();
+      _descriptionController.clear();
+      _categoryController.clear();
+    }
+  }
+
+  void _deleteItem(String id) {
+    _firestoreService.deleteItem(id);
+  }
+
+  void _updateItem(String id) {
+    _firestoreService.updateItem(
+      id,
+      _titleController.text,
+      _descriptionController.text,
+      _categoryController.text,
+    );
+  }
+
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushReplacementNamed(context, '/login'); // Navigasi ke halaman login
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        title: TextField(
-          decoration: InputDecoration(
-            hintText: 'Cari berita apa?',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide: BorderSide.none,
-            ),
-            filled: true,
-            fillColor: Colors.grey[200],
-            prefixIcon: Icon(Icons.search, color: Colors.grey),
+        title: Text("BeritaKu"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: _logout,
           ),
-        ),
+        ],
       ),
       body: Column(
         children: [
-          // TabBar Categories
-          Container(
-            height: 50,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                TabItem(label: 'Olympics'),
-                TabItem(label: 'Ekonomi'),
-                TabItem(label: 'Politik'),
-                TabItem(label: 'Kesehatan'),
-              ],
-            ),
-          ),
-          // Breaking News Section
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.all(16),
-              children: [
-                BreakingNewsCard(
-                  title: 'PS 6 akan siap diluncurkan awal tahun 2022',
-                  date: 'Sabtu, 31 Juli 2021',
-                  image: '/ps6.png', // Replace with your image path
-                  category: 'Teknologi',
-                ),
-                BreakingNewsCard(
-                  title: 'Update terbaru kasus Covid-19 di dunia',
-                  date: 'Jumat, 30 Juli 2021',
-                  image: '/covid.png', // Replace with your image path
-                  category: 'Kesehatan',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: 0,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Cari'),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Favorit'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Akun'),
-        ],
-      ),
-    );
-  }
-}
-
-class TabItem extends StatelessWidget {
-  final String label;
-  const TabItem({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: Chip(
-        label: Text(label),
-        backgroundColor: Colors.grey[200],
-      ),
-    );
-  }
-}
-
-class BreakingNewsCard extends StatelessWidget {
-  final String title;
-  final String date;
-  final String image;
-  final String category;
-
-  const BreakingNewsCard({
-    required this.title,
-    required this.date,
-    required this.image,
-    required this.category,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.asset(
-              image,
-              height: 150,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
+          // Form untuk menambahkan berita
           Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(8.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  category,
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                  ),
+                TextField(
+                  controller: _titleController,
+                  decoration: InputDecoration(labelText: 'Judul Berita'),
                 ),
-                SizedBox(height: 8),
-                Text(
-                  title,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                TextField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(labelText: 'Deskripsi Berita'),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  date,
-                  style: TextStyle(color: Colors.grey),
+                TextField(
+                  controller: _categoryController,
+                  decoration: InputDecoration(labelText: 'Kategori'),
+                ),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _addItem,
+                  child: Text('Tambah Berita'),
                 ),
               ],
             ),
           ),
+          // Menampilkan berita dari Firestore
+          Expanded(
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: _firestoreService.getNews(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                final news = snapshot.data ?? [];
+                return ListView.builder(
+                  itemCount: news.length,
+                  itemBuilder: (context, index) {
+                    final item = news[index];
+                    final itemId = item['id'];
+
+                    return Card(
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item['category'] ?? 'No Category',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  item['title'] ?? 'No Title',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  item['description'] ?? 'No Description',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                                SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.edit),
+                                      onPressed: () {
+                                        _titleController.text = item['title'] ?? '';
+                                        _descriptionController.text = item['description'] ?? '';
+                                        _categoryController.text = item['category'] ?? '';
+                                        _updateItem(itemId);
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.delete),
+                                      onPressed: () => _deleteItem(itemId),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          // Tombol Logout di bawah
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton(
+              onPressed: _logout,
+              child: Text('Logout'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(double.infinity, 50), // Tombol lebar penuh
+              ),
+            ),
+          ),
         ],
-     ),
-);
-}
+      ),
+    );
+  }
 }

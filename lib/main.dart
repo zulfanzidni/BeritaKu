@@ -1,3 +1,4 @@
+import 'package:beritaku/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'login_page.dart';
@@ -27,6 +28,11 @@ class MyApp extends StatelessWidget {
       title: 'BeritaKu',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: LoginPage(),
+      initialRoute: '/login',  // Halaman awal adalah halaman login
+      routes: {
+        '/login': (context) => LoginPage(),  // Rute login
+        '/home': (context) => HomePage(),    // Rute homepage setelah login
+      },
     );
   }
 }
