@@ -1,9 +1,13 @@
+import 'package:beritaku/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'edit_page.dart';
 
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final user = AuthService().getCurrentUser ();
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -43,22 +47,24 @@ class HomePage extends StatelessWidget {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => EditPage()),
-                );
-              },
-              child: Text('Tambah Berita'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50), // Tombol lebar penuh
-              ),
-            ),
-          ),
-        ],
+          user != null
+            ? Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => EditPage()),
+                    );
+                  },
+                  child: Text('Tambah Berita'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 50), // Tombol lebar penuh
+                  ),
+                ),
+              )
+            : Text('You are currently browsing as a guest.'),
+          ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,

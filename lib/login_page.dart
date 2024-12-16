@@ -129,6 +129,21 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
+                SizedBox(height: 20),
+                Center(
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomePage()),
+                      );
+                    },
+                    child: Text(
+                      'or Continue as Guest',
+                      style: TextStyle(color: Colors.blueAccent),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
