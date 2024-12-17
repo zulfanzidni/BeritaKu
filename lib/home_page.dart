@@ -1,9 +1,15 @@
 import 'package:beritaku/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'firestore_service.dart';
 import 'edit_page.dart';
 
 class HomePage extends StatelessWidget {
+  final FirestoreService _firestoreService = FirestoreService();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _categoryController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     final user = AuthService().getCurrentUser ();
@@ -29,22 +35,61 @@ class HomePage extends StatelessWidget {
         children: [
           // Breaking News Section
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.all(16),
-              children: [
-                BreakingNewsCard(
-                  title: 'PS 6 akan siap diluncurkan awal tahun 2022',
-                  date: 'Sabtu, 31 Juli 2021',
-                  image: '/ps6.png', // Replace with your image path
-                  category: 'Teknologi',
-                ),
-                BreakingNewsCard(
-                  title: 'Update terbaru kasus Covid-19 di dunia',
-                  date: 'Jumat, 30 Juli 2021',
-                  image: '/covid.png', // Replace with your image path
-                  category: 'Kesehatan',
-                ),
-              ],
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: _firestoreService.getNews(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                final news = snapshot.data ?? [];
+                return ListView.builder(
+                  itemCount: news.length,
+                  itemBuilder: (context, index) {
+                    final item = news[index];
+                    final itemId = item['id'];
+
+                    return Card(
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item['category'] ?? 'No Category',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  item['title'] ?? 'No Title',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  item['description'] ?? 'No Description',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
           user != null
