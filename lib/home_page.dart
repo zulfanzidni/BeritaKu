@@ -7,6 +7,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = AuthService().getCurrentUser ();
+    bool showFirstWidget = user != null;
 
     return Scaffold(
       appBar: AppBar(
