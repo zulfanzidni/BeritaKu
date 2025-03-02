@@ -1,5 +1,7 @@
 # beritaku
 
+edit untuk keperluan humanity
+
 A new Flutter project.
 
 ## Getting Started
