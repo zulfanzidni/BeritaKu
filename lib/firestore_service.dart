@@ -4,7 +4,7 @@ class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   // Menambahkan berita baru
-  Future<void> addItem(String title, String description, String category) async {
+  Future<void> addItem(String title, String description, String category, [String? imageUrl]) async {
     try {
       await _db.collection('news').add({
         'title': title,
@@ -44,7 +44,7 @@ class FirestoreService {
   }
 
   // Mengupdate berita
-  Future<void> updateItem(String id, String title, String description, String category) async {
+  Future<void> updateItem(String id, String title, String description, String category, [String? imageUrl]) async {
     try {
       await _db.collection('news').doc(id).update({
         'title': title,

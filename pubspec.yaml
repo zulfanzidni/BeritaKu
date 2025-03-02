@@ -40,6 +40,8 @@ dependencies:
   firebase_data_connect: any
   firebase_auth: ^5.3.4
   cloud_firestore: 5.5.1
+  firebase_storage: 12.3.7
+  image_picker: ^0.8.4 # Untuk memilih gambar
 
 dev_dependencies:
   flutter_test:

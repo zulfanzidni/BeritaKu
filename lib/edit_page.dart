@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart'; // Menambahkan image_picker
+import 'package:firebase_storage/firebase_storage.dart'; // Menambahkan firebase_storage
+import 'dart:io'; // Untuk file gambar
 import 'firestore_service.dart'; // Pastikan FirestoreService sudah disiapkan
 
 class EditPage extends StatefulWidget {
@@ -13,17 +16,55 @@ class _EditPageState extends State<EditPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
+  File? _imageFile; // Menyimpan file gambar yang dipilih
+  final ImagePicker _picker = ImagePicker(); // Untuk memilih gambar
 
-  void _addItem() {
+  // Fungsi untuk memilih gambar dari galeri
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  // Fungsi untuk mengupload gambar ke Firebase Storage
+  Future<String?> _uploadImage() async {
+    if (_imageFile != null) {
+      try {
+        final storageRef = FirebaseStorage.instance.ref();
+        final imageRef = storageRef.child('images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+        await imageRef.putFile(_imageFile!);
+        String downloadURL = await imageRef.getDownloadURL();
+        return downloadURL; // Mengembalikan URL gambar
+      } catch (e) {
+        print("Error uploading image: $e");
+        return null;
+      }
+    }
+    return null;
+  }
+
+  void _addItem() async {
     if (_titleController.text.isNotEmpty && _descriptionController.text.isNotEmpty) {
+      // Upload gambar dan dapatkan URL-nya
+      String? imageUrl = await _uploadImage();
+      
+      // Simpan data ke Firestore, termasuk URL gambar
       _firestoreService.addItem(
         _titleController.text,
         _descriptionController.text,
         _categoryController.text,
+        imageUrl, // Menyimpan URL gambar
       );
+
       _titleController.clear();
       _descriptionController.clear();
       _categoryController.clear();
+      setState(() {
+        _imageFile = null; // Reset gambar setelah menambah item
+      });
     }
   }
 
@@ -31,12 +72,16 @@ class _EditPageState extends State<EditPage> {
     _firestoreService.deleteItem(id);
   }
 
-  void _updateItem(String id) {
+  void _updateItem(String id) async {
+    // Upload gambar jika ada perubahan gambar
+    String? imageUrl = await _uploadImage();
+    
     _firestoreService.updateItem(
       id,
       _titleController.text,
       _descriptionController.text,
       _categoryController.text,
+      imageUrl, // Update URL gambar
     );
   }
 
@@ -77,6 +122,16 @@ class _EditPageState extends State<EditPage> {
                   decoration: InputDecoration(labelText: 'Kategori'),
                 ),
                 SizedBox(height: 16),
+                // Tombol untuk memilih gambar
+                ElevatedButton(
+                  onPressed: _pickImage,
+                  child: Text('Pilih Gambar'),
+                ),
+                // Menampilkan gambar yang dipilih (preview)
+                _imageFile != null
+                    ? Image.file(_imageFile!, height: 150, width: 150)
+                    : Text('Tidak ada gambar yang dipilih'),
+                SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _addItem,
                   child: Text('Tambah Berita'),
@@ -86,7 +141,7 @@ class _EditPageState extends State<EditPage> {
           ),
           // Menampilkan berita dari Firestore
           Expanded(
-            child: StreamBuilder<List<Map<String, dynamic>>>(
+            child: StreamBuilder<List<Map<String, dynamic>>>( // Menampilkan berita
               stream: _firestoreService.getNews(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -133,6 +188,9 @@ class _EditPageState extends State<EditPage> {
                                   style: TextStyle(color: Colors.grey),
                                 ),
                                 SizedBox(height: 8),
+                                item['imageUrl'] != null
+                                    ? Image.network(item['imageUrl'], height: 150, width: 150) // Menampilkan gambar dari URL
+                                    : SizedBox.shrink(),
                                 Row(
                                   children: [
                                     IconButton(
